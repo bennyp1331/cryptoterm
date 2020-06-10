@@ -33,6 +33,16 @@ def debug_sub_wins(windows: list):
     for win in windows:
         debug_queue.update({win.__str__(): win.getmaxyx()})
 
+def default_win(rows:int,cols:int) -> list:
+    stdscr.clear()
+    stdscr.refresh()
+    win = curses.newwin(rows-1,cols-1,0,0)
+    sub_windows = [win]
+    paint_windows(sub_windows)
+    chain_refresh(sub_windows)
+    return sub_windows
+
+
 def composite_view(rows:int, cols:int):
     stdscr.clear()
     stdscr.refresh()
@@ -64,11 +74,65 @@ def composite_view(rows:int, cols:int):
         paint_windows(sub_windows)
         chain_refresh(sub_windows)
 
+def quote_view(rows:int, cols:int):
+    sub_windows = default_win(rows,cols)
+    while True:
+        stdscr.refresh()
+        c = stdscr.getch()
+        if c == ord('q'):
+            stdscr.clear()
+            stdscr.refresh()
+            break
+        paint_windows(sub_windows)
+        chain_refresh(sub_windows)
+
+def news_view(rows:int, cols:int):
+    sub_windows = default_win(rows,cols)
+    while True:
+        stdscr.refresh()
+        c = stdscr.getch()
+        if c == ord('q'):
+            stdscr.clear()
+            stdscr.refresh()
+            break
+        paint_windows(sub_windows)
+        chain_refresh(sub_windows)
+
+def plot_view(rows:int, cols:int):
+    sub_windows = default_win(rows,cols)
+    while True:
+        stdscr.refresh()
+        c = stdscr.getch()
+        if c == ord('q'):
+            stdscr.clear()
+            stdscr.refresh()
+            break
+        paint_windows(sub_windows)
+        chain_refresh(sub_windows)
+
+def settings_view(rows:int, cols:int):
+    stdscr.clear()
+    stdscr.refresh()
+    mp = [rows - 1,int(cols/2) - 1]
+    s_win = curses.newwin(mp[0], mp[1],0,0)
+    h_win = curses.newwin(mp[0], mp[1],0,mp[1])
+    sub_windows = [s_win, h_win]
+    paint_windows(sub_windows)
+    chain_refresh(sub_windows)
+    while True:
+        stdscr.refresh()
+        c = stdscr.getch()
+        if c == ord('q'):
+            stdscr.clear()
+            stdscr.refresh()
+            break
+        paint_windows(sub_windows)
+        chain_refresh(sub_windows)
 
 def menu_view(rows:int, cols:int):
     stdscr.clear()
     stdscr.refresh()
-    options = ['Multiplex', 'Quote', 'News', 'Plot']
+    options = ['Multiplex', 'Quote', 'News', 'Plot', 'Settings']
     width = 0
     for o in options:
         if len(o) > width:
@@ -86,7 +150,7 @@ def menu_view(rows:int, cols:int):
     header.addstr(1, 1, "MENU")
     for i, o in enumerate(options):
         menu.addstr(1 + i, 1, o)
-    menu.addstr(1, 1, options[0].upper())
+    menu.addstr(1, 1, options[0], curses.A_REVERSE)
     chain_refresh(sub_windows)
     cursor_x = start_x + 1
     cursor_y = start_y + 1
@@ -105,12 +169,21 @@ def menu_view(rows:int, cols:int):
             if (cursor_y < start_y + length -2):
                 cursor_y += 1
         elif c == ord('e'):
-            if cursor_y == start_y + 2:
+            if cursor_y == start_y + 1:
                 composite_view(rows, cols)
+            elif cursor_y == start_y + 2:
+                quote_view(rows,cols)
+            elif cursor_y == start_y + 3:
+                news_view(rows,cols)
+            elif cursor_y == start_y + 4:
+                plot_view(rows,cols)
+            elif cursor_y == start_y + 5:
+                settings_view(rows,cols)
+
         stdscr.move(cursor_y, cursor_x)
         for i, o in enumerate(options):
             if cursor_y - (start_y+1) == i:
-                menu.addstr(1 + i, 1, o.upper())
+                menu.addstr(1 + i, 1, o.upper(), curses.A_REVERSE)
             else:
                 menu.addstr(1 + i, 1, o)
         paint_windows(sub_windows)

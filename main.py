@@ -14,7 +14,7 @@ curses.start_color()
 curses.noecho()
 curses.cbreak()
 stdscr.keypad(True)
-stdscr.nodelay(True)
+# stdscr.nodelay(True)
 
 debug_queue = {}
 def debug(dq: dict):
@@ -35,7 +35,6 @@ def debug_sub_wins(windows: list):
 
 def composite_view(rows:int, cols:int):
     
-    # ALLOC = tuple(cols (x) , rows (y))
     TOP_A = (cols, int(rows * .1))
     BOT_A = (cols, int(rows * .3))
     y = (rows - (TOP_A[1] + BOT_A[1]))
@@ -67,13 +66,37 @@ def menu_view(rows:int, cols:int):
     
     start_x = int((cols * .5) - (width))
     start_y = int((rows * .5) - (length))
+    header = curses.newwin(3, width, start_y - 3, start_x)
     menu = curses.newwin(length, width, start_y, start_x)
-    sub_windows = []
-    sub_windows.append(menu)
+    sub_windows = [menu, header]
     paint_windows(sub_windows)
+    header.addstr(1, 1, "MENU")
     for i, o in enumerate(options):
         menu.addstr(1 + i, 1, o)
     chain_refresh(sub_windows)
+    cursor_x = start_x + 1
+    cursor_y = start_y + 1
+    stdscr.move(cursor_y, cursor_x)
+    
+    while True:
+        stdscr.refresh()
+        c = stdscr.getch()
+        if c == ord('q'):
+            break
+        elif c == ord('k'):
+            if (cursor_y > start_y + 1):
+                cursor_y -= 1
+        elif c == ord('j'):
+            if (cursor_y < start_y + length -2):
+                cursor_y += 1
+        stdscr.move(cursor_y, cursor_x)
+        for i, o in enumerate(options):
+            if cursor_y - (start_y+1) == i:
+                menu.addstr(1 + i, 1, o.upper())
+            else:
+                menu.addstr(1 + i, 1, o)
+        chain_refresh(sub_windows)
+
 
 # main loop
 def main(stdscr):
@@ -81,11 +104,6 @@ def main(stdscr):
     # composite_view(rows, cols)
     menu_view(rows, cols)
     
-    while True:
-        stdscr.refresh()
-        c = stdscr.getch()
-        if c == ord('q'):
-            break
 wrapper(main)
 
 # shutdown functions

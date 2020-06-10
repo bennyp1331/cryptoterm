@@ -4,8 +4,13 @@ import pprint
 
 DEBUG = True
 
+# rows = y
+# cols = x
+# stdscr.curses_func(y, x) 
+
 # curses setup
 stdscr = curses.initscr()
+curses.start_color()
 curses.noecho()
 curses.cbreak()
 stdscr.keypad(True)
@@ -17,9 +22,8 @@ def debug(dq: dict):
         print("{}: {}".format(k,v))
 
 def paint_windows(windows: list):
-    progression = ['#', '.','+','$','0','%']
     for i, w in enumerate(windows):
-        w.bkgd(progression[i])
+        w.border()
 
 def chain_refresh(windows: list):
     for win in windows:
@@ -28,10 +32,8 @@ def chain_refresh(windows: list):
 def debug_sub_wins(windows: list):
     for win in windows:
         debug_queue.update({win.__str__(): win.getmaxyx()})
- 
-# main loop
-def main(stdscr):
-    rows, cols = stdscr.getmaxyx()
+
+def composite_view(rows:int, cols:int):
     
     # ALLOC = tuple(cols (x) , rows (y))
     TOP_A = (cols, int(rows * .1))
@@ -53,6 +55,32 @@ def main(stdscr):
     debug_queue.update({'t_banner': t_banner.getmaxyx()})
     debug_sub_wins(sub_windows)
 
+def menu_view(rows:int, cols:int):
+    options = ['Multiplex', 'Quote', 'News', 'Plot']
+    width = 0
+    for o in options:
+        if len(o) > width:
+            width = len(o)
+
+    width += 2
+    length = len(options) + 2
+    
+    start_x = int((cols * .5) - (width))
+    start_y = int((rows * .5) - (length))
+    menu = curses.newwin(length, width, start_y, start_x)
+    sub_windows = []
+    sub_windows.append(menu)
+    paint_windows(sub_windows)
+    for i, o in enumerate(options):
+        menu.addstr(1 + i, 1, o)
+    chain_refresh(sub_windows)
+
+# main loop
+def main(stdscr):
+    rows, cols = stdscr.getmaxyx()
+    # composite_view(rows, cols)
+    menu_view(rows, cols)
+    
     while True:
         stdscr.refresh()
         c = stdscr.getch()
